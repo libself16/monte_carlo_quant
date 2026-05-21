@@ -104,7 +104,7 @@ monte_carlo_quant/
 │   ├── monte_carlo.py
 │   └── report.py
 ├── input/
-│   └── test-csv.csv
+│   └── data.csv
 └── output/
 ```
 
