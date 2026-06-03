@@ -6,7 +6,7 @@ INPUT_FILE = "data.csv"
 OUTPUT_FOLDER = BASE_DIR / "output"
 
 SIMULATION_RUNS = 10000
-RISK_RATIOS = [1, 2, 3, 4, 5]
+RISK_RATIOS = [3]
 SYMBOL_FILTER = None
 
 COMPARE_FIXED_AND_COMPOUND = True
@@ -14,7 +14,7 @@ RANDOM_SEED = 42
 USE_EXCEL_OUTPUT = True
 USE_PNG_OUTPUT = True
 USE_TXT_REPORT = True
-CSV_COLUMNS = {"symbol": "Symbol", "return": "Risk"}
+CSV_COLUMNS = {"symbol": "Symbol", "return": "Profit"}
 
 # 初始資金
 INITIAL_CAPITAL = 10000
