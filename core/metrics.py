@@ -56,13 +56,22 @@ def summarize_equity_paths(equity_matrix, r_values, risk_ratio, mode_name="fixed
     final_values = equity_matrix[:, -1]
     max_dd = np.array([compute_max_drawdown(row) for row in equity_matrix], dtype=float)
     ruin_rate = compute_risk_of_ruin(final_values, ruin_threshold)
-    profit_prob = compute_probability_of_profit(final_values, initial_capital)
     stats = compute_return_statistics(r_values, risk_ratio)
+
+    # DISPLAY_RANGE: trim the extreme tails of the final-equity distribution
+    # (e.g. 0.8 drops the top and bottom 10%). The high/low bounds and the
+    # probability of profit are computed on this trimmed range.
     sorted_values = np.sort(final_values)
     low_idx = int(np.floor((1.0 - display_range) / 2.0 * len(sorted_values)))
     high_idx = int(np.ceil((1.0 + display_range) / 2.0 * len(sorted_values))) - 1
     low_idx = max(0, low_idx)
     high_idx = min(len(sorted_values) - 1, high_idx)
+    if high_idx < low_idx:
+        high_idx = low_idx
+    ranged_values = sorted_values[low_idx:high_idx + 1]
+    high_bound = float(sorted_values[high_idx])
+    low_bound = float(sorted_values[low_idx])
+    profit_prob = compute_probability_of_profit(ranged_values, initial_capital)
     return {
         "mode": mode_name,
         "risk_ratio": risk_ratio,
@@ -73,10 +82,10 @@ def summarize_equity_paths(equity_matrix, r_values, risk_ratio, mode_name="fixed
         "average_final_equity_pct": float((np.mean(final_values) - initial_capital) / initial_capital),
         "median_final_equity": float(np.median(final_values)),
         "median_final_equity_pct": float((np.median(final_values) - initial_capital) / initial_capital),
-        "best_final_equity": float(np.max(final_values)),
-        "best_final_equity_pct": float((np.max(final_values) - initial_capital) / initial_capital),
-        "worst_final_equity": float(np.min(final_values)),
-        "worst_final_equity_pct": float((np.min(final_values) - initial_capital) / initial_capital),
+        "best_final_equity": high_bound,
+        "best_final_equity_pct": float((high_bound - initial_capital) / initial_capital),
+        "worst_final_equity": low_bound,
+        "worst_final_equity_pct": float((low_bound - initial_capital) / initial_capital),
         "probability_of_profit": profit_prob,
         "risk_of_ruin": ruin_rate,
         "avg_max_drawdown": float(np.mean(max_dd)),

@@ -34,7 +34,7 @@ def save_excel_summary(summary_records, output_folder):
         + df["best_final_equity_pct"].map("{:.2%}".format)
         + ")"
     )
-    df["Worst Case / Low Bound (最差 / 低限)"] = (
+    df["Worst Case / Low Bound (最差 / 下限)"] = (
         df["worst_final_equity"].map("{:.2f}".format)
         + " ("
         + df["worst_final_equity_pct"].map("{:.2%}".format)
@@ -60,6 +60,9 @@ def save_excel_summary(summary_records, output_folder):
     )
     df["Probability of Profit (區間內勝率)"] = df["probability_of_profit"].map("{:.2%}".format)
     df["Avg Losing Streak (平均連敗次數)"] = df["avg_losing_streak"].map("{:.2f}".format)
+    df["Win Rate (勝率)"] = df["win_rate"].map("{:.2%}".format)
+    df["Expectancy (每筆期望值)"] = df["expectancy"].map("{:+.4%}".format)
+    df["Profit Factor (獲利因子)"] = df["profit_factor"].map("{:.2f}".format)
 
     df = df[
         [
@@ -71,7 +74,7 @@ def save_excel_summary(summary_records, output_folder):
             "Average Final Equity (平均權益)",
             "Median Final Equity (中位數權益)",
             "Best Case / High Bound (最佳 / 上限)",
-            "Worst Case / Low Bound (最差 / 低限)",
+            "Worst Case / Low Bound (最差 / 下限)",
             "Probability of Profit (區間內勝率)",
             "risk_of_ruin",
             "Avg Max Drawdown (平均最大回撤)",
@@ -80,6 +83,9 @@ def save_excel_summary(summary_records, output_folder):
             "Avg Losing Streak (平均連敗次數)",
             "worst_losing_streak",
             "best_losing_streak",
+            "Win Rate (勝率)",
+            "Expectancy (每筆期望值)",
+            "Profit Factor (獲利因子)",
         ]
     ]
     df.columns = [
@@ -91,7 +97,7 @@ def save_excel_summary(summary_records, output_folder):
         "Average Final Equity (平均權益)",
         "Median Final Equity (中位數權益)",
         "Best Case / High Bound (最佳 / 上限)",
-        "Worst Case / Low Bound (最差 / 低限)",
+        "Worst Case / Low Bound (最差 / 下限)",
         "Probability of Profit (區間內勝率)",
         "Risk of Ruin (全樣本破產率)",
         "Avg Max Drawdown (平均最大回撤)",
@@ -100,6 +106,9 @@ def save_excel_summary(summary_records, output_folder):
         "Avg Losing Streak (平均連敗次數)",
         "Worst Losing Streak (最大連敗次數)",
         "Best Losing Streak (最小連敗次數)",
+        "Win Rate (勝率)",
+        "Expectancy (每筆期望值)",
+        "Profit Factor (獲利因子)",
     ]
 
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
@@ -156,6 +165,9 @@ def save_text_report(summary_records, config, output_folder):
         lines.append(f"  Avg Losing Streak (平均連敗次數): {rec['avg_losing_streak']:.2f}")
         lines.append(f"  Worst Losing Streak (最大連敗次數): {rec['worst_losing_streak']}")
         lines.append(f"  Best Losing Streak (最小連敗次數): {rec['best_losing_streak']}")
+        lines.append(f"  Win Rate (勝率): {rec['win_rate']:.2%}")
+        lines.append(f"  Expectancy (每筆期望值): {rec['expectancy']:+.4%}")
+        lines.append(f"  Profit Factor (獲利因子): {rec['profit_factor']:.2f}")
         lines.append("")
     output_path.write_text("\n".join(lines), encoding="utf-8")
     return output_path
@@ -176,14 +188,15 @@ def save_equity_distribution_charts(equity_results, output_folder, config):
             x = range(trade_count)
 
             plt.figure(figsize=(14, 8))
-            plt.plot(
+            path_lines = plt.plot(
                 x,
                 equity_matrix.T,
                 color="tab:blue",
                 linewidth=0.25,
                 alpha=0.03,
-                label="Monte Carlo paths",
             )
+            # Label only one path so the legend has a single entry instead of one per path.
+            path_lines[0].set_label("Monte Carlo paths")
             plt.plot(
                 x,
                 equity_matrix[best_idx],
